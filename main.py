@@ -54,7 +54,7 @@ def move(point1, point2):
             elif y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))):
                 board[x2][y2] = piece
                 board[x1][y1] = "."
-        case "W_rook": #case for white rook. Same as black rook, but moves in the opposite direction
+        case "W_rook": #case for white rook. Same as black rook.
             if x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))):
                 board[x2][y2] = piece
                 board[x1][y1] = "."
@@ -66,23 +66,72 @@ def move(point1, point2):
                 if board[x2][y2] == "." or board[x2][y2][0] == "W":
                     board[x2][y2] = piece
                     board[x1][y1] = "."
-        case "W_knight": #case for white knight. Same as black knight, but moves in the opposite direction
+        case "W_knight": #case for white knight. Same as black knight.
             if (x2 == x1 + 2 and y2 == y1 + 1) or (x2 == x1 + 2 and y2 == y1 - 1) or (x2 == x1 - 2 and y2 == y1 + 1) or (x2 == x1 - 2 and y2 == y1 - 1) or (x2 == x1 + 1 and y2 == y1 + 2) or (x2 == x1 + 1 and y2 == y1 - 2) or (x2 == x1 - 1 and y2 == y1 + 2) or (x2 == x1 - 1 and y2 == y1 - 2):
                 if board[x2][y2] == "." or board[x2][y2][0] == "B":
                     board[x2][y2] = piece
                     board[x1][y1] = "."
+        case "B_bishop": #case for black bishop. Bishop can move any number of spaces diagonally, but cannot jump over pieces
+            if abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1))):
+                board[x2][y2] = piece
+                board[x1][y1] = "."
+        case "W_bishop": #case for white bishop. Same as black bishop.
+            if abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1))):
+                board[x2][y2] = piece
+                board[x1][y1] = "."
+        case "B_queen": #case for black queen. Queen can move any number of spaces in a straight line or diagonally, but cannot jump over pieces
+            if (x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))) or (y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))) or (abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1)))))):
+                board[x2][y2] = piece
+                board[x1][y1] = "."
+        case "W_queen": #case for white queen. Same as black queen.
+            if (x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))) or (y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))) or (abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1)))))):
+                board[x2][y2] = piece
+                board[x1][y1] = "."
+        case "B_king": #case for black king. King can move one space in any direction, but cannot move into check
+            if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "W"):
+                board[x2][y2] = piece
+                board[x1][y1] = "." 
+        case "W_king": #case for white king. Same as black king.
+            if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "B"):
+                board[x2][y2] = piece
+                board[x1][y1] = "."
 
-        
-
+#this function checks if the given king is in check. Not currently implemented.
+def is_in_check(color):
+    #find the king's position
+    king_pos = None
+    for i in range(8):
+        for j in range(8):
+            if board[i][j] == f"{color}_king":
+                king_pos = (i, j)
+                break
+        if king_pos is not None:
+            break
+    
+    #check if any of the opponent's pieces can move to the king's position
+    opponent_color = "B" if color == "W" else "W"
+    for i in range(8):
+        for j in range(8):
+            if board[i][j].startswith(opponent_color):
+                if move((i, j), king_pos):
+                    return True
+    return False
 
 #test function, not implemented
 def getPiece(point):
     x, y = point
     print(board[x][y])
     
-
+#test moves
 print_board()
 move((6,0), (4,0))
+move((6,1), (4,1))
+move((6,2), (4,2))
+move((6,3), (4,3))
+move((6,4), (4,4))
+move((6,5), (4,5))
+move((6,6), (4,6))
+move((6,7), (4,7))
 print_board()
 move((7,0), (5,0))
 print_board()
@@ -91,4 +140,12 @@ print_board()
 move((7,1) , (5,2))
 print_board()
 move((6,1), (4,1))
+print_board()
+move((7,2), (6,1))
+print_board()
+move((6,1), (5,0))
+print_board()
+move((7,3), (7,2))
+print_board()
+move((7,2), (7,0))
 print_board()
