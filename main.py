@@ -122,30 +122,19 @@ def getPiece(point):
     x, y = point
     print(board[x][y])
     
-#test moves
-print_board()
-move((6,0), (4,0))
-move((6,1), (4,1))
-move((6,2), (4,2))
-move((6,3), (4,3))
-move((6,4), (4,4))
-move((6,5), (4,5))
-move((6,6), (4,6))
-move((6,7), (4,7))
-print_board()
-move((7,0), (5,0))
-print_board()
-move((5,0), (5,7))
-print_board()
-move((7,1) , (5,2))
-print_board()
-move((6,1), (4,1))
-print_board()
-move((7,2), (6,1))
-print_board()
-move((6,1), (5,0))
-print_board()
-move((7,3), (7,2))
-print_board()
-move((7,2), (7,0))
-print_board()
+
+
+#The main function loops ad infinitum, printing the board and askint the user for their move.
+def main(): 
+    while True:
+        print_board()
+        move_input = input("Enter your move (e.g. '6 0 4 0' to move the piece at (6,0) to (4,0)): ")
+        try:
+            x1, y1, x2, y2 = map(int, move_input.split())
+            move((x1, y1), (x2, y2))
+        except ValueError:
+            print("Invalid input. Please enter your move in the format 'x1 y1 x2 y2'.")
+
+
+if __name__ == "__main__":
+    main()
