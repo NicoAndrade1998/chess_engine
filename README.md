@@ -1,1 +1,1 @@
-dependencies: numpy
+dependencies: numpy, tkinter

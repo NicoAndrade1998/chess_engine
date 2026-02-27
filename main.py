@@ -1,4 +1,9 @@
+from cProfile import label
+
 import numpy as np #used for better implementation of multidimensional arrays
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
 
 #B stands for Black, W for White. This array is 8*8 in size and represents all 8 columns and rows of a standard chess board
 board = np.array([
@@ -11,11 +16,24 @@ board = np.array([
          ["W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn"],
          ["W_rook","W_knight","W_bishop","W_king","W_queen","W_bishop","W_knight","W_rook"]])
 
+
+root = Tk()
+label = tk.Label(root, text="test")
+label.pack()
+
+def count(i=0):
+    if i <= 10:
+        label.config(text=str(i))
+        root.after(500, count, i+1)
+
+
+
 #used to print current layout of the chess board to the screen
 def print_board():
     for i in range (8):
+        label.config(text=" ".join(f"{num:8}" for num in board[i]) + f" {i}")
         print(" ".join(f"{num:8}" for num in board[i]) + f" {i}")
-    print("0        1        2        3        4        5        6        7 \n\n")
+    print("0        1        2        3        4        5        6        7 \n\n")  
 
 
 
