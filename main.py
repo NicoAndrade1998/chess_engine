@@ -1,4 +1,5 @@
 import numpy as np #used for better implementation of multidimensional arrays
+#import tkinter as tk #for the gui. Adding a gui will make the program more user friendly.
 
 #B stands for Black, W for White. This array is 8*8 in size and represents all 8 columns and rows of a standard chess board
 board = np.array([
@@ -95,6 +96,8 @@ def move(point1, point2):
             if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "B"):
                 board[x2][y2] = piece
                 board[x1][y1] = "."
+        case _: #case for error
+            print("Invalid input. Try again")
 
 #this function checks if the given king is in check. Not currently implemented.
 def is_in_check(color):
@@ -124,7 +127,7 @@ def getPiece(point):
     
 
 
-#The main function loops ad infinitum, printing the board and askint the user for their move.
+#The main function loops ad infinitum, printing the board and asking the user for their move.
 def main(): 
     while True:
         print_board()
@@ -135,6 +138,8 @@ def main():
         except ValueError:
             print("Invalid input. Please enter your move in the format 'x1 y1 x2 y2'.")
 
+def dummy():
+    print("hello world")
 
 if __name__ == "__main__":
     main()
