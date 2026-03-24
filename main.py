@@ -3,22 +3,62 @@ import numpy as np #used for better implementation of multidimensional arrays
 
 #B stands for Black, W for White. This array is 8*8 in size and represents all 8 columns and rows of a standard chess board
 board = np.array([
-         ["B_rook","B_knight","B_bishop","B_queen","B_king","B_bishop","B_knight","B_rook"], 
-         ["B_pawn", "B_pawn", "B_pawn", "B_pawn", "B_pawn", "B_pawn", "B_pawn", "B_pawn"],
-         [".", ".", ".", ".", ".", ".", ".", "."],
-         [".", ".", ".", ".", ".", ".", ".", "."],
-         [".", ".", ".", ".", ".", ".", ".", "."],
-         [".", ".", ".", ".", ".", ".", ".", "."],
-         ["W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn", "W_pawn"],
-         ["W_rook","W_knight","W_bishop","W_king","W_queen","W_bishop","W_knight","W_rook"]])
+    ["B_rook","B_knight","B_bishop","B_queen","B_king","B_bishop","B_knight","B_rook"], 
+    ["B_pawn","B_pawn","B_pawn","B_pawn","B_pawn","B_pawn","B_pawn","B_pawn"],
+    [".",".",".",".",".",".",".","."],
+    [".",".",".",".",".",".",".","."],
+    [".",".",".",".",".",".",".","."],
+    [".",".",".",".",".",".",".","."],
+    ["W_pawn","W_pawn","W_pawn","W_pawn","W_pawn","W_pawn","W_pawn","W_pawn"],
+    ["W_rook","W_knight","W_bishop","W_king","W_queen","W_bishop","W_knight","W_rook"]
+])
+
+#tkinter setup
+root = Tk()
+root.title("Chess")
+
+#This is used for drawing with tkinter
+UNICODE_MAP = {
+    "W_king": "♔", "W_queen": "♕", "W_rook": "♖",
+    "W_bishop": "♗", "W_knight": "♘", "W_pawn": "♙",
+    "B_king": "♚", "B_queen": "♛", "B_rook": "♜",
+    "B_bishop": "♝", "B_knight": "♞", "B_pawn": "♟"
+}
+
+canvas = tk.Canvas(root, width=480, height=480)
+canvas.pack()
+
+
+def draw_board_gui():
+    canvas.delete("all")
+    square_size = 60
+    colors = ["#F0D9B5", "#B58863"]
+
+    for i in range(8):
+        for j in range(8):
+            x1 = j * square_size
+            y1 = i * square_size
+            x2 = x1 + square_size
+            y2 = y1 + square_size
+
+            color = colors[(i + j) % 2]
+            canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
+
+            piece = board[i][j]
+            if piece != ".":
+                symbol = UNICODE_MAP.get(piece, "")
+                canvas.create_text(
+                    x1 + square_size // 2,
+                    y1 + square_size // 2,
+                    text=symbol,
+                    font=("Arial", square_size // 2)
+                )
 
 #used to print current layout of the chess board to the screen
 def print_board():
-    for i in range (8):
+    for i in range(8):
         print(" ".join(f"{num:8}" for num in board[i]) + f" {i}")
-    print("0        1        2        3        4        5        6        7 \n\n")
-
-
+    print("0        1        2        3        4        5        6        7\n")
 
 
 #moves the indicated piece, if move is legal
@@ -27,21 +67,19 @@ def move(point1, point2):
     x1, y1 = point1
     x2, y2 = point2
     piece = board[x1][y1]
+
     match piece:
-        case "B_pawn": #case for Black pawn. Pawn can move 2 spaces on its first move, and 1 space on all subsequent moves. It can also capture pieces diagonally, but cannot move diagonally if there is no piece to capture
+        case "B_pawn":
             if x2 == x1 + 1 and y2 == y1 and board[x2][y2] == ".":
-                board[x2][y2] = piece
-                board[x1][y1] = "."
+                board[x2][y2], board[x1][y1] = piece, "."
             elif x2 == x1 + 2 and y2 == y1 and board[x2][y2] == "." and board[x1 + 1][y1] == "." and x1 == 1:
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-            elif x2 == x1 + 1 and (y2 == y1 + 1 or y2 == y1 - 1) and board[x2][y2] != "." and board[x2][y2][0] == "W":
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "W_pawn": #case for white pawn. Same as black pawn, but moves in the opposite direction
+                board[x2][y2], board[x1][y1] = piece, "."
+            elif x2 == x1 + 1 and abs(y2 - y1) == 1 and board[x2][y2] != "." and board[x2][y2][0] == "W":
+                board[x2][y2], board[x1][y1] = piece, "."
+
+        case "W_pawn":
             if x2 == x1 - 1 and y2 == y1 and board[x2][y2] == ".":
-                board[x2][y2] = piece
-                board[x1][y1] = "."
+                board[x2][y2], board[x1][y1] = piece, "."
             elif x2 == x1 - 2 and y2 == y1 and board[x2][y2] == "." and board[x1 - 1][y1] == "." and x1 == 6:
                 board[x2][y2] = piece
                 board[x1][y1] = "."
@@ -120,23 +158,27 @@ def is_in_check(color):
                     return True
     return False
 
-#test function, not implemented
-def getPiece(point):
-    x, y = point
-    print(board[x][y])
-    
-
+def main():
+    draw_board_gui()
+    root.update()
 
 #The main function loops ad infinitum, printing the board and asking the user for their move.
 def main(): 
     while True:
+        root.update()  
+
         print_board()
-        move_input = input("Enter your move (e.g. '6 0 4 0' to move the piece at (6,0) to (4,0)): ")
+        move_input = input("(e.g. '6 0 4 0' to move the piece at (6,0) to (4,0) or 'exit': ")
+
+        if move_input.lower() == "exit":
+            break
+
         try:
             x1, y1, x2, y2 = map(int, move_input.split())
             move((x1, y1), (x2, y2))
-        except ValueError:
-            print("Invalid input. Please enter your move in the format 'x1 y1 x2 y2'.")
+        except:
+            print("Invalid input.")
+
 
 def dummy():
     print("hello world")
