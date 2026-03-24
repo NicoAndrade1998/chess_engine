@@ -1,5 +1,6 @@
 import numpy as np #used for better implementation of multidimensional arrays
-#import tkinter as tk #for the gui. Adding a gui will make the program more user friendly.
+import tkinter as tk
+from tkinter import *
 
 #B stands for Black, W for White. This array is 8*8 in size and represents all 8 columns and rows of a standard chess board
 board = np.array([
@@ -81,61 +82,37 @@ def move(point1, point2):
             if x2 == x1 - 1 and y2 == y1 and board[x2][y2] == ".":
                 board[x2][y2], board[x1][y1] = piece, "."
             elif x2 == x1 - 2 and y2 == y1 and board[x2][y2] == "." and board[x1 - 1][y1] == "." and x1 == 6:
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-            elif x2 == x1 - 1 and (y2 == y1 + 1 or y2 == y1 - 1) and board[x2][y2] != "." and board[x2][y2][0] == "B":
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "B_rook": #case for black rook. Rook can move any number of spaces in a straight line, but cannot jump over pieces
-            if x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-            elif y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "W_rook": #case for white rook. Same as black rook.
-            if x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-            elif y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "B_knight": #case for black knight. Knight can move in an L shape, and can jump over pieces
-            if (x2 == x1 + 2 and y2 == y1 + 1) or (x2 == x1 + 2 and y2 == y1 - 1) or (x2 == x1 - 2 and y2 == y1 + 1) or (x2 == x1 - 2 and y2 == y1 - 1) or (x2 == x1 + 1 and y2 == y1 + 2) or (x2 == x1 + 1 and y2 == y1 - 2) or (x2 == x1 - 1 and y2 == y1 + 2) or (x2 == x1 - 1 and y2 == y1 - 2):
-                if board[x2][y2] == "." or board[x2][y2][0] == "W":
-                    board[x2][y2] = piece
-                    board[x1][y1] = "."
-        case "W_knight": #case for white knight. Same as black knight.
-            if (x2 == x1 + 2 and y2 == y1 + 1) or (x2 == x1 + 2 and y2 == y1 - 1) or (x2 == x1 - 2 and y2 == y1 + 1) or (x2 == x1 - 2 and y2 == y1 - 1) or (x2 == x1 + 1 and y2 == y1 + 2) or (x2 == x1 + 1 and y2 == y1 - 2) or (x2 == x1 - 1 and y2 == y1 + 2) or (x2 == x1 - 1 and y2 == y1 - 2):
-                if board[x2][y2] == "." or board[x2][y2][0] == "B":
-                    board[x2][y2] = piece
-                    board[x1][y1] = "."
-        case "B_bishop": #case for black bishop. Bishop can move any number of spaces diagonally, but cannot jump over pieces
-            if abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "W_bishop": #case for white bishop. Same as black bishop.
-            if abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "B_queen": #case for black queen. Queen can move any number of spaces in a straight line or diagonally, but cannot jump over pieces
-            if (x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))) or (y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))) or (abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1)))))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "W_queen": #case for white queen. Same as black queen.
-            if (x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))) or (y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))) or (abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1)))))):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case "B_king": #case for black king. King can move one space in any direction, but cannot move into check
-            if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "W"):
-                board[x2][y2] = piece
-                board[x1][y1] = "." 
-        case "W_king": #case for white king. Same as black king.
-            if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "B"):
-                board[x2][y2] = piece
-                board[x1][y1] = "."
-        case _: #case for error
-            print("Invalid input. Try again")
+                board[x2][y2], board[x1][y1] = piece, "."
+            elif x2 == x1 - 1 and abs(y2 - y1) == 1 and board[x2][y2] != "." and board[x2][y2][0] == "B":
+                board[x2][y2], board[x1][y1] = piece, "."
+
+        case "B_rook" | "W_rook":
+            if x2 == x1 and all(board[x1][i] == "." for i in range(min(y1, y2)+1, max(y1, y2))):
+                board[x2][y2], board[x1][y1] = piece, "."
+            elif y2 == y1 and all(board[i][y1] == "." for i in range(min(x1, x2)+1, max(x1, x2))):
+                board[x2][y2], board[x1][y1] = piece, "."
+
+        case "B_knight" | "W_knight":
+            if (abs(x2-x1), abs(y2-y1)) in [(2,1),(1,2)]:
+                if board[x2][y2] == "." or board[x2][y2][0] != piece[0]:
+                    board[x2][y2], board[x1][y1] = piece, "."
+
+        case "B_bishop" | "W_bishop":
+            if abs(x2-x1) == abs(y2-y1):
+                if all(board[x1+i*(1 if x2>x1 else -1)][y1+i*(1 if y2>y1 else -1)] == "." for i in range(1, abs(x2-x1))):
+                    board[x2][y2], board[x1][y1] = piece, "."
+
+        case "B_queen" | "W_queen":
+            if (x1 == x2 or y1 == y2 or abs(x2-x1) == abs(y2-y1)):
+                board[x2][y2], board[x1][y1] = piece, "."
+
+        case "B_king" | "W_king":
+            if abs(x2-x1) <= 1 and abs(y2-y1) <= 1:
+                board[x2][y2], board[x1][y1] = piece, "."
+
+    #update the GUI after the move
+    draw_board_gui()
+    root.update()
 
 #this function checks if the given king is in check. Not currently implemented.
 def is_in_check(color):
@@ -158,12 +135,17 @@ def is_in_check(color):
                     return True
     return False
 
+def cpu_move():
+    x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
+    while board[x1][y1].charAt(0) != "B": #This assuumes the CPU is playing as black.
+        x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
+    
+    
+
 def main():
     draw_board_gui()
     root.update()
 
-#The main function loops ad infinitum, printing the board and asking the user for their move.
-def main(): 
     while True:
         root.update()  
 
@@ -180,8 +162,6 @@ def main():
             print("Invalid input.")
 
 
-def dummy():
-    print("hello world")
 
 if __name__ == "__main__":
     main()
