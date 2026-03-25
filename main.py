@@ -226,14 +226,28 @@ def is_in_check(color):
 def cpu_move():
     x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
     target = board[x1][y1]
+    move_count = 0
 
-    while target[0] != "B": #This assuumes the CPU is playing as black.
+    while target[0] != "B": #This assumes the CPU is playing as black, and selects a random black piece to move
         x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
         target = board[x1][y1]
     
-    x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8)
-    while move((x1, y1), (x2, y2)) == False:
+    x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8) #selects a random move for the chosen piece and iterates until it finds a legal move
+    while move((x1, y1), (x2, y2)) == False: #certain pieces may not have any legal moves, if that it the case, it loops forever
+        move_count = move_count + 1
+        #print(move_count) #used for debugging
         x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8)
+        
+        if move_count > 8: #this is for if the cpu gets stuck in a loop
+            move_count = 0 #set counter back to zero
+            x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8) #select a new piece at random
+            target = board[x1][y1]
+            while target[0] != "B": 
+                x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
+                target = board[x1][y1]
+
+
+    
        
 
 def main():
@@ -252,10 +266,12 @@ def main():
 
         try:
             x1, y1, x2, y2 = map(int, move_input.split())
-            print(move((x1, y1), (x2, y2)))
+            #print(move((x1, y1), (x2, y2)))
+            if not move((x1,y1),(x2,y2)):
+                continue
         except ValueError:
             print("Invalid input.")
-
+        
         cpu_move()
 
 
