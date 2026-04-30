@@ -200,6 +200,107 @@ def move(point1, point2):
             return False
     return False
 
+#simplified version of move funtion which only checks if the move is legal. (I realised I needed to separate the move validity check from actually moving pieces.)
+def moveIsLegal(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+    piece = board[x1][y1]
+    opponent = board[x2][y2]
+    match piece:
+        case "B_pawn": #case for Black pawn. Pawn can move 2 spaces on its first move, and 1 space on all subsequent moves. It can also capture pieces diagonally, but cannot move diagonally if there is no piece to capture
+            if x2 == x1 + 1 and y2 == y1 and board[x2][y2] == ".":
+                return True
+            elif x2 == x1 + 2 and y2 == y1 and board[x2][y2] == "." and board[x1 + 1][y1] == "." and x1 == 1:
+                return True
+            elif x2 == x1 + 1 and (y2 == y1 + 1 or y2 == y1 - 1) and board[x2][y2] != "." and board[x2][y2][0] == "W":
+                return True
+        case "W_pawn": #case for white pawn. Same as black pawn, but moves in the opposite direction
+            if x2 == x1 - 1 and y2 == y1 and board[x2][y2] == ".":
+                return True
+            elif x2 == x1 - 2 and y2 == y1 and board[x2][y2] == "." and board[x1 - 1][y1] == "." and x1 == 6:
+                return True
+            elif x2 == x1 - 1 and (y2 == y1 + 1 or y2 == y1 - 1) and board[x2][y2] != "." and board[x2][y2][0] == "B":
+                return True
+        
+        
+        case "B_rook": #case for black rook. Rook can move any number of spaces in a straight line, but cannot jump over pieces
+            if opponent[0] == "B":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))):
+                return True
+            elif y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))):
+                return True
+        case "W_rook": #case for white rook. Same as black rook.
+            if opponent[0] == "W":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))):
+                return True
+            elif y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))):
+                return True
+        
+        case "B_knight": #case for black knight. Knight can move in an L shape, and can jump over pieces
+            if opponent[0] == "B":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if (x2 == x1 + 2 and y2 == y1 + 1) or (x2 == x1 + 2 and y2 == y1 - 1) or (x2 == x1 - 2 and y2 == y1 + 1) or (x2 == x1 - 2 and y2 == y1 - 1) or (x2 == x1 + 1 and y2 == y1 + 2) or (x2 == x1 + 1 and y2 == y1 - 2) or (x2 == x1 - 1 and y2 == y1 + 2) or (x2 == x1 - 1 and y2 == y1 - 2):
+                if board[x2][y2] == "." or board[x2][y2][0] == "W":
+                    return True
+        case "W_knight": #case for white knight. Same as black knight.
+            if opponent[0] == "W":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if (x2 == x1 + 2 and y2 == y1 + 1) or (x2 == x1 + 2 and y2 == y1 - 1) or (x2 == x1 - 2 and y2 == y1 + 1) or (x2 == x1 - 2 and y2 == y1 - 1) or (x2 == x1 + 1 and y2 == y1 + 2) or (x2 == x1 + 1 and y2 == y1 - 2) or (x2 == x1 - 1 and y2 == y1 + 2) or (x2 == x1 - 1 and y2 == y1 - 2):
+                if board[x2][y2] == "." or board[x2][y2][0] == "B":
+                    return True
+        
+        
+        case "B_bishop": #case for black bishop. Bishop can move any number of spaces diagonally, but cannot jump over pieces
+            if opponent[0] == "B":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1))):
+                return True
+        case "W_bishop": #case for white bishop. Same as black bishop.
+            if opponent[0] == "W":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1))):
+                return True
+        
+        
+        case "B_queen": #case for black queen. Queen can move any number of spaces in a straight line or diagonally, but cannot jump over pieces
+            if opponent[0] == "B":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if (x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))) or (y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))) or (abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1)))))):
+                return True
+        case "W_queen": #case for white queen. Same as black queen.
+            if opponent[0] == "W":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if (x2 == x1 and y2 != y1 and all(board[x1][i] == "." for i in range(min(y1, y2) + 1, max(y1, y2))) or (y2 == y1 and x2 != x1 and all(board[i][y1] == "." for i in range(min(x1, x2) + 1, max(x1, x2))) or (abs(x2 - x1) == abs(y2 - y1) and all(board[x1 + i][y1 + i] == "." for i in range(1, abs(x2 - x1)))))):
+                return True
+        
+        
+        case "B_king": #case for black king. King can move one space in any direction, but cannot move into check
+            if opponent[0] == "B":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "W"):
+                return True
+        case "W_king": #case for white king. Same as black king.
+            if opponent[0] == "W":
+                print("Cannot capture your own piece. Try again.")
+                return False
+            if abs(x2 - x1) <= 1 and abs(y2 - y1) <= 1 and (board[x2][y2] == "." or board[x2][y2][0] == "B"):
+                return True
+        case _: #case for error
+            print("Invalid input. Try again")
+            return False
+    return False
+
 
 #this function checks if the given king is in check. Not currently implemented.
 def is_in_check(color):
@@ -233,7 +334,7 @@ def cpu_move():
         target = board[x1][y1]
     
     x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8) #selects a random move for the chosen piece and iterates until it finds a legal move
-    while move((x1, y1), (x2, y2)) == False: #certain pieces may not have any legal moves, if that it the case, it loops forever
+    while moveIsLegal((x1, y1), (x2, y2)) == False: #certain pieces may not have any legal moves, if that it the case, it loops forever
         move_count = move_count + 1
         #print(move_count) #used for debugging
         x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8)
@@ -245,6 +346,8 @@ def cpu_move():
             while target[0] != "B": 
                 x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
                 target = board[x1][y1]
+    if moveIsLegal((x1, y1), (x2, y2)):
+        move((x1, y1), (x2, y2))
 
 
     
@@ -267,8 +370,11 @@ def main():
         try:
             x1, y1, x2, y2 = map(int, move_input.split())
             #print(move((x1, y1), (x2, y2)))
-            if not move((x1,y1),(x2,y2)):
+            if not moveIsLegal((x1,y1),(x2,y2)):
                 continue
+            else:
+                move((x1, y1), (x2, y2))
+
         except ValueError:
             print("Invalid input.")
         
