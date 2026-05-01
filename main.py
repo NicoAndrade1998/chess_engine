@@ -302,24 +302,38 @@ def moveIsLegal(point1, point2):
     return False
 
 
-#this function checks if the given king is in check. Not currently implemented.
+#this function checks if the given king is in check.
+#must select color "White" or "Black"
 def is_in_check(color):
     #find the king's position
     king_pos = None
-    for i in range(8):
-        for j in range(8):
-            if board[i][j] == f"{color}_king":
-                king_pos = (i, j)
-                break
-        if king_pos is not None:
-            break
+    
+    match color:
+        case "White":
+            for i in range(8):
+                for j in range(8):
+                    if board[i][j] == "W_king":
+                        king_pos = (i , j)
+                        break
+
+        case "Black":
+            for i in range(8):
+                for j in range(8):
+                    if board[i][j] == "B_king":
+                        king_pos = (i, j)
+                        break
+        case _:
+            print("Invalid Color Entered")
+            return False
+    
+
     
     #check if any of the opponent's pieces can move to the king's position
-    opponent_color = "B" if color == "W" else "W"
+    opponent_color = "B" if color == "White" else "W"
     for i in range(8):
         for j in range(8):
             if board[i][j].startswith(opponent_color):
-                if move((i, j), king_pos):
+                if moveIsLegal((i, j), king_pos):
                     return True
     return False
 
