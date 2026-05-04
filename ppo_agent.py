@@ -64,38 +64,52 @@ class PPOAgent:
     # -------------------------
     # ACTION SELECTION
     # -------------------------
-    def select_action(self, state, env):
-        state_t = self.preprocess(state)
+    def select_action(env, model, state):
+        state_t = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
 
-        logits, value = self.model(state_t)
+        logits, value = model(state_t)
+        logits = logits.squeeze(0)
 
-        logits = logits.detach().squeeze(0)
-        value = value.item()
+        legal_moves = env.get_legal_moves()
+        legal_indices = [encode_move(m) for m in legal_moves]
 
-        mask = self.get_mask(env)
+        mask = torch.zeros_like(logits)
+        mask[legal_indices] = 1.0
 
-        # 🚨 mask illegal moves
-        masked_logits = logits + torch.tensor((mask - 1) * 1e9)
 
-        probs = F.softmax(masked_logits, dim=0)
+        masked_logits = logits + (mask + 1e-8).log()
+
+        probs = torch.softmax(masked_logits, dim=-1)
 
         dist = torch.distributions.Categorical(probs)
         action_idx = dist.sample()
 
         log_prob = dist.log_prob(action_idx)
 
-        return action_idx.item(), log_prob.item(), value
+        move = decode_move(action_idx.item())
+
+        return move, action_idx, log_prob, value.squeeze(0), mask
 
     # store transitions
     def store(self, transition):
         self.memory.append(transition)
 
+
     # -------------------------
     # PPO UPDATE
     # -------------------------
-    def update(self, gamma=0.99, eps=0.2):
-        states, actions, rewards, log_probs, values = zip(*self.memory)
+    def update(self, gamma=0.99, eps=0.2, entropy_coef=0.01):
 
+        states, actions, rewards, log_probs, values, masks = zip(*self.memory)
+
+        states = list(states)
+        actions = torch.tensor(actions, dtype=torch.long)
+        old_log_probs = torch.tensor(log_probs, dtype=torch.float32)
+        values = torch.tensor(values, dtype=torch.float32)
+
+        # -------------------------
+        # Compute returns
+        # -------------------------
         returns = []
         G = 0
         for r in reversed(rewards):
@@ -103,38 +117,51 @@ class PPOAgent:
             returns.insert(0, G)
 
         returns = torch.tensor(returns, dtype=torch.float32)
-        values = torch.tensor(values, dtype=torch.float32)
-        actions = torch.tensor(actions)
 
+        # -------------------------
+        # ADVANTAGES
+        # -------------------------
         advantages = returns - values
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-        for _ in range(4):  # PPO epochs
+        # -------------------------
+        # PPO TRAINING
+        # -------------------------
+        for _ in range(6):
+
             for i in range(len(states)):
-
-                state = states[i]
+                state = self.preprocess(states[i])
                 action = actions[i]
-                old_log = log_probs[i]
+                old_log = old_log_probs[i]
                 adv = advantages[i]
 
-                state_t = self.preprocess(state)
+                logits, value = self.model(state)
+                logits = logits.squeeze(0)
 
-                logits, value = self.model(state_t)
-                probs = F.softmax(logits.squeeze(0), dim=0)
+                # ✅ APPLY MASK (CRITICAL)
+                mask = torch.tensor(masks[i], dtype=torch.float32)
+                masked_logits = logits + (mask + 1e-8).log()
 
+                probs = torch.softmax(masked_logits, dim=0)
                 dist = torch.distributions.Categorical(probs)
 
                 new_log = dist.log_prob(action)
 
                 ratio = torch.exp(new_log - old_log)
 
+                # PPO CLIP
                 surr1 = ratio * adv
                 surr2 = torch.clamp(ratio, 1 - eps, 1 + eps) * adv
 
                 actor_loss = -torch.min(surr1, surr2)
 
+                # critic
                 critic_loss = (returns[i] - value.squeeze()) ** 2
 
-                loss = actor_loss + critic_loss
+                # entropy
+                entropy = dist.entropy()
+
+                loss = actor_loss + 0.5 * critic_loss - entropy_coef * entropy
 
                 self.optimizer.zero_grad()
                 loss.backward()

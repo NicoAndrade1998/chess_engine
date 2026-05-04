@@ -1,7 +1,9 @@
-import numpy as np #used for better implementation of multidimensional arrays
+import numpy as np
 import tkinter as tk
 from tkinter import *
-
+import torch
+from model import PPOModel   # or PPOModel if you're using PPO
+from utils import encode_move, decode_move
 #B stands for Black, W for White. This array is 8*8 in size and represents all 8 columns and rows of a standard chess board
 board = np.array([
     ["B_rook","B_knight","B_bishop","B_queen","B_king","B_bishop","B_knight","B_rook"], 
@@ -39,6 +41,31 @@ UNICODE_MAP = {
 canvas = tk.Canvas(root, width=480, height=480)
 canvas.pack()
 
+model = PPOModel()
+model.load_state_dict(torch.load("ppo_chess.pth"))  # your saved weights
+model.eval()
+
+def encode_board():
+    encoding = np.zeros((8, 8, 12), dtype=np.float32)
+
+    piece_to_index = {
+        "pawn": 0, "rook": 1, "knight": 2,
+        "bishop": 3, "queen": 4, "king": 5
+    }
+
+    for i in range(8):
+        for j in range(8):
+            piece = board[i][j]
+            if piece == ".":
+                continue
+
+            color = piece[0]
+            name = piece.split("_")[1]
+            idx = piece_to_index[name] + (0 if color == "W" else 6)
+
+            encoding[i, j, idx] = 1
+
+    return encoding
 
 def draw_board_gui():
     canvas.delete("all")
@@ -349,33 +376,22 @@ def is_in_check(color):
 
 #basic CPU move funtion. Randomly selects a piece and makes a legal move.
 def cpu_move():
-    x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
-    target = board[x1][y1]
-    move_count = 0
+    state = encode_board()
+    state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
 
-    while target[0] != "B": #This assumes the CPU is playing as black, and selects a random black piece to move
-        x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
-        target = board[x1][y1]
-    
-    x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8) #selects a random move for the chosen piece and iterates until it finds a legal move
-    while moveIsLegal((x1, y1), (x2, y2)) == False: #certain pieces may not have any legal moves, if that it the case, it loops forever
-        move_count = move_count + 1
-        #print(move_count) #used for debugging
-        x2, y2 = np.random.randint(0, 8), np.random.randint(0, 8)
-        
-        if move_count > 8: #this is for if the cpu gets stuck in a loop
-            move_count = 0 #set counter back to zero
-            x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8) #select a new piece at random
-            target = board[x1][y1]
-            while target[0] != "B": 
-                x1, y1 = np.random.randint(0, 8), np.random.randint(0, 8)
-                target = board[x1][y1]
-    if moveIsLegal((x1, y1), (x2, y2)):
-        move((x1, y1), (x2, y2))
+    with torch.no_grad():
+        policy_logits, _ = model(state_tensor)
 
+    q_values = policy_logits.squeeze(0).numpy()
 
-    
-       
+    sorted_actions = np.argsort(q_values)[::-1]
+
+    for action in sorted_actions:
+        (x1, y1), (x2, y2) = decode_move(action)
+
+        if board[x1][y1].startswith("B") and moveIsLegal((x1, y1), (x2, y2)):
+            move((x1, y1), (x2, y2))
+            return
 
 def main():
     draw_board_gui()

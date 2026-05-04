@@ -1,8 +1,6 @@
 import numpy as np
 
-class ChessEnv:
-    def __init__(self):
-        piece_values = {
+piece_values = {
             "pawn": 1,
             "knight": 3,
             "bishop": 3,
@@ -10,6 +8,10 @@ class ChessEnv:
             "queen": 9,
             "king": 0
         }
+
+class ChessEnv:
+    def __init__(self):
+
 
         self.start_board = np.array([
             ["B_rook","B_knight","B_bishop","B_queen","B_king","B_bishop","B_knight","B_rook"],
@@ -22,11 +24,6 @@ class ChessEnv:
             ["W_rook","W_knight","W_bishop","W_queen","W_king","W_bishop","W_knight","W_rook"]
         ])
         self.reset()
-
-
-        # -------------------------
-            # BOARD ENCODING
-            # -------------------------
 
     # -------------------------
     # RESET
@@ -167,7 +164,12 @@ class ChessEnv:
         target = self.board[x2][y2]
 
         if target != ".":
-            reward += 0.1
+            piece_type = target.split("_")[1]  # "queen", "rook", etc.
+
+            value = piece_values[piece_type]
+
+            # optional: scale it down so it doesn't dominate win reward
+            reward += value * 0.05
 
         self.apply_move((x1, y1), (x2, y2))
 
@@ -210,9 +212,6 @@ class ChessEnv:
         return moves
 
     def encode_board(self):
-            """
-            Returns: 8x8x12 numpy array
-            """
 
             encoding = np.zeros((8, 8, 12), dtype=np.float32)
 
