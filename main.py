@@ -14,6 +14,16 @@ board = np.array([
     ["W_rook","W_knight","W_bishop","W_king","W_queen","W_bishop","W_knight","W_rook"]
 ])
 
+#piece evaluations
+piece_values = {
+    "pawn": 1,
+    "knight": 3,
+    "bishop": 3,
+    "rook": 5,
+    "queen": 9,
+    "king": 1000
+}
+
 #tkinter setup
 root = Tk()
 root.title("Chess")
